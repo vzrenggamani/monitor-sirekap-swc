@@ -20,9 +20,9 @@ export default function Page() {
   ];
 
   return (
-    <main className="container mx-auto">
+    <main className="container mx-auto px-5">
       <header className="py-8">
-        <h1 className="text-3xl">
+        <h1 className="text-3xl font-bold py-2">
           External Monitoring SIREKAP KPU 2024 desa Sawocangkring
         </h1>
         <p>
@@ -53,9 +53,28 @@ export default function Page() {
           </a>
         </p>
       </header>
-      {tpsNumbers.map((tpsNumber) => (
-        <DataTPS key={tpsNumber} tpsNumber={tpsNumber} />
-      ))}
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-8">
+        {tpsNumbers.map((tpsNumber) => (
+          <DataTPS key={tpsNumber} tpsNumber={tpsNumber} />
+        ))}
+      </div>
+      <footer className="py-8">
+        <p>
+          Data diambil dari{" "}
+          <a
+            className="text-blue-600 underline font-medium"
+            href="https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/ppwp/35/3515/351510/3515102006.json"
+          >
+            API SIREKAP KPU
+          </a>
+        </p>
+        <small>
+          Laboratorium Analitik Data,{" "}
+          <a href="https://renggaprakosonugroho.my.id">
+            <b>Rengga Prakoso Nugroho (rengganugroho@um.ac.id)</b>
+          </a>
+        </small>
+      </footer>
     </main>
   );
 }
