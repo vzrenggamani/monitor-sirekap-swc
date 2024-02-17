@@ -1,113 +1,222 @@
-import Image from "next/image";
+"use client";
+import useSWR from "swr";
 
-export default function Home() {
+interface kpuData {
+  chart: {
+    100025: number;
+    100026: number;
+    100027: number;
+  };
+  images: string[];
+  administrasi: {
+    suara_sah: number;
+    suara_total: number;
+    pemilih_dpt_j: number;
+    pemilih_dpt_l: number;
+    pemilih_dpt_p: number;
+    pengguna_dpt_j: number;
+    pengguna_dpt_l: number;
+    pengguna_dpt_p: number;
+    pengguna_dptb_j: number;
+    pengguna_dptb_l: number;
+    pengguna_dptb_p: number;
+    suara_tidak_sah: number;
+    pengguna_total_j: number;
+    pengguna_total_l: number;
+    pengguna_total_p: number;
+    pengguna_non_dpt_j: number;
+    pengguna_non_dpt_l: number;
+    pengguna_non_dpt_p: number;
+  };
+  psu: null | any;
+  ts: string;
+  status_suara: boolean;
+  status_adm: boolean;
+}
+
+// Fetch data from server from the client side using SWR library
+// link to data https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/ppwp/35/3515/351510/3515102020/3515102020012.json
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const tpsNumbers = Array.from({ length: 14 }, (_, i) =>
+  (i + 1).toString().padStart(2, "0")
+);
+
+export function DataTPS() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <>
+      {tpsNumbers.map((tpsNumber) => {
+        const { data, error } = useSWR<kpuData>(
+          `https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/ppwp/35/3515/351510/3515102020/35151020200${tpsNumber}.json`,
+          fetcher
+        );
+
+        if (error) return <div>Failed to load data for TPS {tpsNumber}</div>;
+        if (!data) return <div>Loading data for TPS {tpsNumber}...</div>;
+
+        const suaraSah = data.administrasi?.suara_sah || "tidak ada data";
+        const suaraTotal = data.administrasi?.suara_total || "tidak ada data";
+        const suaraTidakSah =
+          data.administrasi?.suara_tidak_sah || "tidak ada data";
+        const pemilihDptJ =
+          data.administrasi?.pemilih_dpt_j || "tidak ada data";
+        const penggunaDptJ =
+          data.administrasi?.pengguna_dpt_j || "tidak ada data";
+        const penggunaDptBJ =
+          data.administrasi?.pengguna_dptb_j || "tidak ada data";
+        const penggunaTotalJ =
+          data.administrasi?.pengguna_total_j || "tidak ada data";
+        const penggunaNonDptJ =
+          data.administrasi?.pengguna_non_dpt_j || "tidak ada data";
+        const paslon1 = data.chart ? data.chart["100025"] : 0;
+        const paslon2 = data.chart ? data.chart["100026"] : 0;
+        const paslon3 = data.chart ? data.chart["100027"] : 0;
+        const totalPaslon = paslon1 + paslon2 + paslon3;
+        const lastUpdate = data.ts;
+        return (
+          <table
+            key={tpsNumber}
+            className="table-auto mb-8 border border-slate-900"
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
+            <tbody>
+              <tr>
+                <td
+                  className="border border-slate-700 text-2xl font-bold"
+                  colSpan={4}
+                >
+                  TPS {tpsNumber}
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">
+                  Pengguna hak pilih dalam DPT
+                </td>
+                <td className="border border-slate-700">{penggunaDptJ}</td>
+                <td className="border border-slate-700">Seluruh suara sah</td>
+                <td className="border border-slate-700">{suaraSah}</td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">
+                  Pengguna hak pilih dalam DPTb
+                </td>
+                <td className="border border-slate-700">{penggunaDptBJ}</td>
+                <td className="border border-slate-700">
+                  Jumlah suara tidak sah
+                </td>
+                <td className="border border-slate-700">{suaraTidakSah}</td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">
+                  Pengguna hak pilih dalam DPK
+                </td>
+                <td className="border border-slate-700">{penggunaNonDptJ}</td>
+                <td className="border border-slate-700">
+                  SELURUH SUARA SAH DAN SUARA TIDAK SAH
+                </td>
+                <td className="border border-slate-700">{suaraTotal}</td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">Pengguna hak pilih</td>
+                <td className="border border-slate-700">{penggunaTotalJ}</td>
+                <td className="border border-slate-700"> </td>
+                <td className="border border-slate-700"> </td>
+              </tr>
+              <tr>
+                <td
+                  className="border border-slate-700 font-bold text-xl"
+                  colSpan={4}
+                >
+                  SUARA PILPRES
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">PASLON 1</td>
+                <td className="border border-slate-700">PASLON 2</td>
+                <td className="border border-slate-700">PASLON 3</td>
+                <td className="border border-slate-700">TOTAL</td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700">{paslon1}</td>
+                <td className="border border-slate-700">{paslon2}</td>
+                <td className="border border-slate-700">{paslon3}</td>
+                <td className="border border-slate-700">{totalPaslon}</td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700" colSpan={4}>
+                  HASIL PINDAI C.HASIL
+                </td>
+              </tr>
+              <tr>
+                {/* return the images */}
+                <td className="border border-slate-700" colSpan={4}>
+                  {data.images.map((image) => (
+                    <td>
+                      <img
+                        className="w-1/4 h-1/4 object-cover"
+                        key={image}
+                        src={image}
+                        alt={image}
+                        onClick={() => {
+                          window.open(image);
+                        }}
+                      />
+                    </td>
+                  ))}
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-slate-700" colSpan={4}>
+                  {/* give information how long since last update */}
+                  Last update: {lastUpdate}, diperbarui oleh sistem KPU{" "}
+                  {Math.round(
+                    (Date.now() - new Date(lastUpdate).getTime()) / 3600000
+                  )}{" "}
+                  jam yang lalu
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        );
+      })}
+    </>
+  );
+}
+
+export default function Page() {
+  return (
+    <main className="container mx-auto">
+      <header className="py-8">
+        <h1 className="text-3xl">
+          External Monitoring SIREKAP KPU 2024 desa Sawocangkring
+        </h1>
+        <p>
+          Disclaimer, Dashboard Monitoring Independen, data diperoleh melalui{" "}
+          <a
+            className="text-blue-600 underline font-medium"
+            href="https://sirekap-obj-data.kpu.go.id/pemilu/hhcw/ppwp/35/3515/351510/3515102006.json"
+          >
+            API SIREKAP KPU
           </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+          . Data dapat berubah sewaktu-waktu tanpa pemberitahuan dan berbeda
+          dengan data resmi KPU. Data ini hanya untuk kepentingan monitoring
+          independen.
+        </p>
+        <small>
+          Laboratorium Analitik Data,{" "}
+          <a href="https://renggaprakosonugroho.my.id">
+            <b>Rengga Prakoso Nugroho (rengganugroho@um.ac.id)</b>
+          </a>
+        </small>
+        <p className="pt-2">
+          {" "}
+          <a
+            className="text-blue-600 underline font-medium"
+            href="https://kawalpemilu.org/h/3515102020"
+          >
+            Tautan Monitoring Kawal Pemilu Desa Sawocangkring
+          </a>
+        </p>
+      </header>
+      <DataTPS />
     </main>
   );
 }
